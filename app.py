@@ -1,39 +1,38 @@
 # app.py
-# Streamlit app: Foto -> Desenho (com nomes comerciais) + progresso + sliders por efeito
-# Requisitos:
-#   pip install streamlit pillow numpy opencv-python opencv-contrib-python
-# (No Streamlit Cloud, prefira: opencv-contrib-python-headless)
-#
-# Execução:
-#   streamlit run app.py
+# Execute com: streamlit run app.py
 
 import io
-import importlib
+import hashlib
 import inspect
+import json
+import logging
 import time
+from pathlib import Path
 
 import numpy as np
 import streamlit as st
-from PIL import Image, ImageOps
+from PIL import Image
 import cv2
 
 import foto_para_desenho as engine
-engine = importlib.reload(engine)
+from image_input import prepare_image
+
+DEMO_PATH = Path(__file__).parent / "assets" / "demo_fotoimagem.jpg"
+logger = logging.getLogger(__name__)
 
 
 # =========================
 # Config / UI base
 # =========================
-st.set_page_config(page_title="Foto → Desenho", layout="wide")
-st.title("Foto → Desenho")
-st.caption("Envie uma foto, escolha um efeito, ajuste apenas o que é relevante e baixe o resultado em PNG.")
+st.set_page_config(page_title="FotoImagem | Foto → Desenho", page_icon="🎨", layout="wide")
+st.title("FotoImagem · Foto → Desenho")
+st.caption("Experimente a demonstração ou envie uma imagem. Escolha entre 15 efeitos e baixe sua criação em PNG.")
 
 
 # =========================
 # Helpers
 # =========================
 def pil_to_bgr(pil_img: Image.Image) -> np.ndarray:
-    pil_img = ImageOps.exif_transpose(pil_img)  # força orientação correta (em pé)
     rgb = np.array(pil_img.convert("RGB"))
     return cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
 
@@ -55,38 +54,7 @@ def call_with_supported_kwargs(func, **kwargs):
 
 
 def get_func(name: str):
-    if not hasattr(engine, name):
-        st.error(f"Função `{name}` não encontrada no motor. Arquivo: {getattr(engine,'__file__','???')}")
-        st.stop()
     return getattr(engine, name)
-
-
-def run_with_progress(fn, label="Gerando..."):
-    placeholder = st.empty()
-    with placeholder.container():
-        st.markdown(f"### ⏳ {label}")
-        st.write("Processando imagem… pode levar alguns segundos dependendo do efeito e do tamanho.")
-        prog = st.progress(0)
-        status = st.empty()
-        for p in [5, 12, 20, 28, 35]:
-            prog.progress(p)
-            status.write(f"Preparando… {p}%")
-            time.sleep(0.05)
-
-    t0 = time.time()
-    with st.spinner("Rodando o efeito..."):
-        result = fn()
-    dt = time.time() - t0
-
-    with placeholder.container():
-        prog.progress(95)
-        status.write("Finalizando…")
-        time.sleep(0.05)
-        prog.progress(100)
-        status.success(f"Pronto! Tempo: {dt:.2f}s")
-    time.sleep(0.35)
-    placeholder.empty()
-    return result
 
 
 # =========================
@@ -159,7 +127,26 @@ EFFECTS = {
 # =========================
 # Input
 # =========================
-uploaded = st.file_uploader("Escolha uma imagem (JPG/PNG)", type=["jpg", "jpeg", "png"])
+source = st.radio("Imagem para transformar", ["Experimentar demonstração", "Enviar minha imagem"], horizontal=True)
+image_data = None
+if source == "Experimentar demonstração":
+    image_data = DEMO_PATH.read_bytes()
+    st.caption("Cena fictícia criada por IA para demonstração dos efeitos.")
+else:
+    uploaded = st.file_uploader("Escolha uma imagem (JPG/PNG)", type=["jpg", "jpeg", "png"])
+    if uploaded is not None:
+        image_data = uploaded.getvalue()
+    st.caption("JPG ou PNG · até 10 MB e 16 megapixels · saída com até 1.600 pixels no maior lado.")
+    st.caption("A imagem é enviada ao servidor para processamento durante a sessão. O aplicativo não a grava em disco nem a envia a APIs de imagem.")
+
+pil_img = None
+if image_data is not None:
+    try:
+        pil_img, resized = prepare_image(image_data)
+        if resized:
+            st.info(f"Imagem ajustada para {pil_img.width} × {pil_img.height} pixels para agilizar o processamento.")
+    except ValueError as exc:
+        st.error(str(exc))
 
 effect_label = st.selectbox("Efeito", list(EFFECTS.keys()), index=0)
 mode = EFFECTS[effect_label]["mode"]
@@ -363,19 +350,23 @@ elif mode == "blur":
 # =========================
 # Run
 # =========================
-run = st.button("Gerar")
+current_key = (
+    source,
+    hashlib.sha256(image_data).hexdigest() if image_data is not None else None,
+    mode,
+    json.dumps(params, sort_keys=True),
+)
+if st.session_state.get("selection_key") != current_key:
+    st.session_state.pop("result", None)
+    st.session_state["selection_key"] = current_key
+
+run = st.button("Gerar", type="primary", disabled=pil_img is None)
 
 
 # =========================
 # Processamento
 # =========================
 if run:
-    if not uploaded:
-        st.warning("Envie uma imagem primeiro.")
-        st.stop()
-
-    pil_img_raw = Image.open(uploaded)
-    pil_img = ImageOps.exif_transpose(pil_img_raw)
     img_bgr = pil_to_bgr(pil_img)
 
     def _process():
@@ -470,24 +461,41 @@ if run:
         st.stop()
 
     try:
-        out = run_with_progress(_process, label=f"Gerando: {effect_label}")
-    except Exception as e:
-        st.exception(e)
+        started = time.perf_counter()
+        with st.spinner("Transformando sua imagem…"):
+            out = _process()
+            out_pil = bgr_to_pil(out)
+            buf = io.BytesIO()
+            out_pil.save(buf, format="PNG")
+        st.session_state["result"] = {
+            "image": out_pil,
+            "png": buf.getvalue(),
+            "seconds": time.perf_counter() - started,
+        }
+    except Exception:
+        logger.exception("Falha ao aplicar o efeito %s", mode)
+        st.error("Não foi possível gerar este efeito. Tente outra imagem ou ajuste os controles.")
         st.stop()
 
-    out_pil = bgr_to_pil(out)
-
+result = st.session_state.get("result")
+if result is not None:
+    st.success(f"Pronto! Gerado em {result['seconds']:.2f} s.")
     left, right = st.columns(2)
     with left:
-        st.image(pil_img, caption="Original (orientação corrigida)", use_container_width=True)
+        st.image(pil_img, caption="Imagem original", width="stretch")
     with right:
-        st.image(out_pil, caption=f"Resultado: {effect_label}", use_container_width=True)
+        st.image(result["image"], caption=f"Resultado: {effect_label}", width="stretch")
 
-    buf = io.BytesIO()
-    out_pil.save(buf, format="PNG")
     st.download_button(
         "Baixar PNG",
-        data=buf.getvalue(),
+        data=result["png"],
         file_name=f"resultado_{mode}.png",
         mime="image/png",
+        on_click="ignore",
     )
+elif pil_img is not None:
+    st.image(pil_img, caption="Imagem pronta para transformar — clique em Gerar.", width=420)
+
+with st.expander("Sobre o FotoImagem"):
+    st.write("Os efeitos usam processamento de imagem com OpenCV. A demonstração foi criada por IA; os filtros não usam modelos generativos.")
+    st.write("O resultado depende da iluminação e dos detalhes da imagem. Experimente ajustar os controles para encontrar o estilo desejado.")

@@ -1,4 +1,4 @@
-streamlit
-opencv-contrib-python-headless
-numpy
-pillow
+streamlit==1.66.1
+opencv-contrib-python-headless==5.0.0.93
+numpy==2.3.5
+pillow==12.3.0

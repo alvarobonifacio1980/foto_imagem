@@ -226,7 +226,7 @@ def main():
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         print("Modo teste. Exemplos:")
-        print('python foto_para_desenho.py --input "minha_foto.jpg" --mode sketch --sketch_strength 0.6 --show')
-        print('python foto_para_desenho.py --input "minha_foto.jpg" --mode sketch_clean --sketch_strength 0.6 --clean_level 0.35 --edge_weight 0.9 --show')
+        print('python foto_para_desenho_V1.py --input "assets/demo_fotoimagem.jpg" --mode sketch --sketch_strength 0.6 --show')
+        print('python foto_para_desenho_V1.py --input "assets/demo_fotoimagem.jpg" --mode sketch_clean --sketch_strength 0.6 --clean_level 0.35 --edge_weight 0.9 --show')
     else:
         main()

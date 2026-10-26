@@ -232,7 +232,7 @@ def fx_watercolor(
 # HQ (poster + linhas)
 # =========================
 
-def fx_hq(img_bgr: np.ndarray, line_thickness: int = 2, poster_levels: int = 6) -> np.ndarray:
+def fx_hq(img_bgr: np.ndarray, line_thickness: int = 2, poster_levels: int = 6, min_area: int = 0) -> np.ndarray:
     levels = max(2, int(poster_levels))
     step = max(1, 256 // levels)
     poster = (img_bgr // step) * step
@@ -242,6 +242,7 @@ def fx_hq(img_bgr: np.ndarray, line_thickness: int = 2, poster_levels: int = 6) 
     gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, (5, 5), 0)
     edges = cv2.Canny(gray, 40, 120)
+    edges = _remove_small_components_u8(edges, min_area=max(0, int(min_area)))
     t = max(1, int(line_thickness))
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (t, t))
     edges = cv2.dilate(edges, kernel, iterations=1)
@@ -540,12 +541,13 @@ def fx_colorir_linhas_pro_v2(
             iterations=1
         )
 
-        # Reduz bordas dentro da pele: edges = edges * (1 - k*skin)
+        # Aumenta os limiares apenas nessas áreas, removendo traços fracos.
+        # Atenuar valores binários não funciona: a limpeza os normaliza para 255.
         k = float(np.clip(skin_strength, 0.0, 1.0))
         if k > 0:
-            skin_mask = (skin > 0).astype(np.uint8)
-            # remove uma parte das bordas em pele
-            edges = cv2.bitwise_and(edges, cv2.bitwise_not((skin_mask * int(255 * k)).astype(np.uint8)))
+            stronger_edges = cv2.Canny(gray, low * (1 + 2 * k), high * (1 + 2 * k))
+            skin_mask = skin > 0
+            edges[skin_mask] = cv2.bitwise_and(edges, stronger_edges)[skin_mask]
 
     # 6) Conectar falhas e remover sujeira
     cs = int(np.clip(close_size, 1, 9))
