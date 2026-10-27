@@ -2,6 +2,10 @@
 
 Aplicação interativa em Python para transformar fotos em desenhos, contornos e estilos de pintura. Compare a imagem original com o resultado, ajuste os controles e baixe a criação em PNG.
 
+## Acesse o aplicativo
+
+**[Experimentar FotoImagem no Render](https://fotoimagem.onrender.com)** — versão pública conectada à branch `main` deste repositório. No plano gratuito do Render, o primeiro acesso após um período de inatividade pode levar mais tempo.
+
 ## Experimente
 
 1. Use **Experimentar demonstração** para testar sem enviar arquivos, ou escolha **Enviar minha imagem**.
