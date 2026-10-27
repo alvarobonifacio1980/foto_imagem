@@ -6,6 +6,20 @@ Aplicação interativa em Python para transformar fotos em desenhos, contornos e
 
 **[Experimentar FotoImagem no Render](https://fotoimagem.onrender.com)** — versão pública conectada à branch `main` deste repositório. No plano gratuito do Render, o primeiro acesso após um período de inatividade pode levar mais tempo.
 
+### Visão rápida
+
+| Entrada | Processamento | Resultado |
+|---|---|---|
+| Fotografia ou imagem fictícia de demonstração | Efeitos de imagem via OpenCV, ajustados pelo usuário | Desenho/pintura para baixar em PNG |
+
+```mermaid
+flowchart LR
+    A["Selecionar foto ou demonstração"] --> B["Escolher um dos 15 efeitos"]
+    B --> C["Ajustar parâmetros"]
+    C --> D["Processar com OpenCV"]
+    D --> E["Comparar e baixar PNG"]
+```
+
 ## Experimente
 
 1. Use **Experimentar demonstração** para testar sem enviar arquivos, ou escolha **Enviar minha imagem**.
