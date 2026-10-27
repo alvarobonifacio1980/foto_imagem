@@ -93,3 +93,7 @@ PYTHON_VERSION: 3.12.14
 ```
 
 Não é necessário configurar banco de dados, disco persistente ou chaves de API. O plano gratuito pode suspender o serviço por inatividade; o primeiro acesso após a suspensão pode demorar mais.
+
+## Licenciamento e dados
+
+O projeto está público para visualização e avaliação técnica, porém **ainda não possui licença de reutilização definida**. Bibliotecas de terceiros mantêm suas respectivas licenças. A imagem fictícia de demonstração não é uma captura de usuário nem uma base pública de fotografias.
