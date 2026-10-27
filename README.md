@@ -32,6 +32,10 @@ A demonstração é uma cena fictícia criada por IA especificamente para o proj
 
 ![Imagem fictícia de demonstração do FotoImagem](assets/demo_fotoimagem.jpg)
 
+## Escopo e limitações
+
+O projeto demonstra processamento digital de imagens por algoritmos clássicos do OpenCV. A qualidade dos efeitos depende de iluminação, contraste, cores e resolução do arquivo. O processamento ocorre no servidor durante a sessão; não se trata de edição local no navegador.
+
 ## Efeitos disponíveis
 
 Sketch Artístico, Livro de Colorir PRO, Linhas HQ, Ink Noir, Traço X-DoG, Cartoon Pop, Cartoon Clean, Aquarela, Poster Art, Retrato Suave, Fine Art P&B, Glow Dreamy, Contornos, Preto & Branco e Desfoque.
