@@ -6,6 +6,8 @@ Aplicação interativa em Python para transformar fotos em desenhos, contornos e
 
 **[Experimentar FotoImagem no Render](https://fotoimagem.onrender.com)** — versão pública conectada à branch `main` deste repositório. No plano gratuito do Render, o primeiro acesso após um período de inatividade pode levar mais tempo.
 
+![Tela real do FotoImagem publicado no Render](https://raw.githubusercontent.com/alvarobonifacio1980/alvarobonifacio1980/main/assets/screenshots/fotoimagem.png)
+
 ### Visão rápida
 
 | Entrada | Processamento | Resultado |
