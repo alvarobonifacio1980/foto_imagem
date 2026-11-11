@@ -28,13 +28,13 @@ flowchart LR
 2. Selecione um dos 15 efeitos e ajuste os controles disponíveis.
 3. Clique em **Gerar** e depois em **Baixar PNG**.
 
-A demonstração é uma cena fictícia criada por IA especificamente para o projeto. Os efeitos do aplicativo usam algoritmos clássicos de processamento de imagem com OpenCV, sem modelos generativos ou chamadas a APIs de imagem.
+A imagem de demonstração foi criada para o projeto. Os **15 efeitos visuais** são processados com OpenCV.
 
 ![Imagem fictícia de demonstração do FotoImagem](assets/demo_fotoimagem.jpg)
 
-## Escopo e limitações
+## Processamento das imagens
 
-O projeto demonstra processamento digital de imagens por algoritmos clássicos do OpenCV. A qualidade dos efeitos depende de iluminação, contraste, cores e resolução do arquivo. O processamento ocorre no servidor durante a sessão; não se trata de edição local no navegador.
+A aplicação utiliza algoritmos de processamento de imagens com OpenCV. O resultado varia conforme iluminação, contraste, cores, resolução e os ajustes selecionados.
 
 ## Efeitos disponíveis
 
@@ -69,7 +69,7 @@ python -m unittest discover -s tests -v
 - A saída é PNG; os metadados da fotografia não são copiados para o download.
 - O arquivo enviado é processado no servidor durante a sessão. O código não o grava em disco, não o adiciona ao repositório e não o envia a APIs de imagem. As imagens e o resultado ficam temporariamente na memória da sessão.
 
-O projeto contém apenas a demonstração fictícia como exemplo. Resultados locais, caches e segredos estão excluídos pelo `.gitignore`.
+Os arquivos de teste e os resultados da interface são mantidos separados do código-fonte.
 
 ## Estrutura
 
@@ -96,4 +96,4 @@ Não é necessário configurar banco de dados, disco persistente ou chaves de AP
 
 ## Licenciamento e dados
 
-O projeto está público para visualização e avaliação técnica, porém **ainda não possui licença de reutilização definida**. Bibliotecas de terceiros mantêm suas respectivas licenças. A imagem fictícia de demonstração não é uma captura de usuário nem uma base pública de fotografias.
+Código disponível para consulta técnica. Bibliotecas de terceiros seguem suas respectivas licenças.
